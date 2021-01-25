@@ -1,0 +1,28 @@
+{
+  "name": "node_js",
+  "version": "1.0.0",
+  "description": "hw-01",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plostvik/node_js.git"
+  },
+  "author": "Ostap <plostvik@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/plostvik/node_js/issues"
+  },
+  "homepage": "https://github.com/plostvik/node_js#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "dependencies": {
+    "uuid": "^8.3.2",
+    "yargs": "^16.2.0"
+  }
+}
