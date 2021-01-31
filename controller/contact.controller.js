@@ -84,6 +84,7 @@ class ContactController {
 
   updateContact = (req, res) => {
     const { contactId } = req.params;
+    const { body } = req;
     const contactIndex = this.findContactIndex(contactId);
 
     const updatedContact = {
