@@ -1,7 +1,10 @@
-// const argv = require('yargs').argv;
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const contactRouter = require('./routes/contact.routes');
 
@@ -17,6 +20,7 @@ class Server {
     this.initMiddlewares();
     this.initRoutes();
     this.listen();
+    this.connectToDb();
   }
 
   initMiddlewares() {
@@ -27,6 +31,19 @@ class Server {
       }),
     );
     this.server.use(morgan('dev'));
+  }
+
+  async connectToDb() {
+    try {
+      await mongoose.connect(process.env.MONGO_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('Database connection successful');
+    } catch (err) {
+      console.log(err);
+      process.exit(1);
+    }
   }
 
   initRoutes() {
@@ -42,32 +59,3 @@ class Server {
 
 const server = new Server();
 server.start();
-
-// async function invokeAction({ action, id, name, email, phone }) {
-//   switch (action) {
-//     case 'list':
-//       const list = await listContacts();
-//       console.table(list);
-//       break;
-
-//     case 'get':
-//       const contactToShow = await getContactById(id);
-//       console.table(contactToShow);
-//       break;
-
-//     case 'add':
-//       const listAfterAdd = await addContact(name, email, phone);
-//       console.table(listAfterAdd);
-//       break;
-
-//     case 'remove':
-//       const listAfterRemove = await removeContact(id);
-//       console.table(listAfterRemove);
-//       break;
-
-//     default:
-//       console.warn('\x1B[31m Unknown action type!');
-//   }
-// }
-
-// invokeAction(argv);
