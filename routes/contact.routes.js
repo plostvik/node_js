@@ -3,7 +3,7 @@ const ContactController = require('../controller/contact.controller');
 
 const router = Router();
 
-router.get('/', ContactController.listContacts);
+router.get('/', ContactController.getContatcs);
 router.get(
   '/:contactId',
   ContactController.validateContactId,
