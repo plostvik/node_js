@@ -7,8 +7,17 @@ const Contact = require('../models/Contacts');
 class ContactController {
   async getContatcs(req, res) {
     try {
-      const contacts = await Contact.find();
-      res.json(contacts);
+      const { sub, page, limit } = req.query;
+      const options =
+        page && limit
+          ? {
+              page: page,
+              limit: limit,
+            }
+          : {};
+      const query = sub ? { subscription: sub } : {};
+      const contacts = await Contact.paginate(query, options);
+      res.json(contacts.docs);
     } catch (err) {
       res.status(400).send(err);
     }
