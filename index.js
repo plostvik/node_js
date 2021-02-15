@@ -7,6 +7,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const contactRouter = require('./routes/contact.routes');
+const authRouter = require('./routes/auth.routes');
+const userRouter = require('./routes/user.routes');
 
 const PORT = process.env.port || 8080;
 
@@ -19,8 +21,8 @@ class Server {
     this.server = express();
     this.initMiddlewares();
     this.initRoutes();
-    this.listen();
     this.connectToDb();
+    this.listen();
   }
 
   initMiddlewares() {
@@ -38,6 +40,8 @@ class Server {
       await mongoose.connect(process.env.MONGO_URL, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useCreateIndex: true,
+        useFindAndModify: false,
       });
       console.log('Database connection successful');
     } catch (err) {
@@ -47,6 +51,8 @@ class Server {
   }
 
   initRoutes() {
+    this.server.use('/auth', authRouter);
+    this.server.use('/users', userRouter);
     this.server.use('/contacts', contactRouter);
   }
 
