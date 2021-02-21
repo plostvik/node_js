@@ -5,6 +5,7 @@ const router = Router();
 
 router.post(
   '/register',
+  // upload.single('avatar'),
   AuthController.validateRegisterUser,
   AuthController.registerUser,
 );
