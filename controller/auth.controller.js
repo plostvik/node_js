@@ -1,10 +1,19 @@
+const fs = require('fs');
+
 const Joi = require('Joi');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const jdenticon = require('jdenticon');
+const dotenv = require('dotenv');
+const imagemin = require('imagemin');
+const imageminPngquant = require('imagemin-pngquant');
 const User = require('../models/Users');
 
+dotenv.config();
+const PORT = process.env.port || 8080;
+
 class AuthController {
-  async registerUser(req, res) {
+  registerUser = async (req, res) => {
     try {
       const { body } = req;
       const hashedPassword = await bcrypt.hash(body.password, 2);
@@ -17,9 +26,15 @@ class AuthController {
         return res.status(409).json({ message: 'Email in use' });
       }
 
+      const avatarName = Date.now();
+      const tmpPath = `./tmp/${avatarName}.png`;
+      this.generateAvatar(tmpPath);
+      this.minifyAvatar(tmpPath);
+
       const user = await User.create({
         ...body,
         password: hashedPassword,
+        avatarURL: `http://localhost:${PORT}/images/${avatarName}.png`,
       });
 
       const { email, subscription } = user;
@@ -31,7 +46,7 @@ class AuthController {
     } catch (error) {
       res.status(400).send(error);
     }
-  }
+  };
 
   validateRegisterUser(req, res, next) {
     const validationRules = Joi.object({
@@ -49,6 +64,35 @@ class AuthController {
     }
 
     next();
+  }
+
+  generateAvatar = path => {
+    const size = 200;
+    const value = Date.now().toString(); //создаю уникальный value для генерации уникальных аватаров
+    const png = jdenticon.toPng(value, size);
+    return fs.writeFileSync(path, png);
+  };
+
+  async minifyAvatar(path) {
+    try {
+      const [file] = await imagemin([path], {
+        destination: 'public/',
+        plugins: [
+          imageminPngquant({
+            quality: [0.6, 0.8],
+          }),
+        ],
+        progressive: true,
+        arithmetic: true,
+      });
+
+      if (!file) {
+        throw new Error('Whoops! Something went wrong');
+      }
+      return fs.unlinkSync(path);
+    } catch (err) {
+      return err;
+    }
   }
 
   async loginUser(req, res) {

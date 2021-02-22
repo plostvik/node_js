@@ -33,6 +33,7 @@ class Server {
       }),
     );
     this.server.use(morgan('dev'));
+    this.server.use('/images', express.static('public'));
   }
 
   async connectToDb() {
