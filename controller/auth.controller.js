@@ -7,10 +7,13 @@ const jdenticon = require('jdenticon');
 const dotenv = require('dotenv');
 const imagemin = require('imagemin');
 const imageminPngquant = require('imagemin-pngquant');
+const { v4: uuidv4 } = require('uuid');
+const sgMail = require('@sendgrid/mail');
 const User = require('../models/Users');
 
 dotenv.config();
 const PORT = process.env.port || 8080;
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 class AuthController {
   registerUser = async (req, res) => {
@@ -31,10 +34,14 @@ class AuthController {
       this.generateAvatar(tmpPath);
       this.minifyAvatar(tmpPath);
 
+      const verificationToken = uuidv4();
+      this.sendVerificationEmail(body.email, verificationToken);
+
       const user = await User.create({
         ...body,
         password: hashedPassword,
         avatarURL: `http://localhost:${PORT}/images/${avatarName}.png`,
+        verificationToken,
       });
 
       const { email, subscription } = user;
@@ -93,6 +100,17 @@ class AuthController {
     } catch (err) {
       return err;
     }
+  }
+
+  async sendVerificationEmail(email, token) {
+    const msg = {
+      to: email,
+      from: 'plostvik@gmail.com', // Change to your verified sender
+      subject: 'Please verify your email',
+      text: 'Verify your account',
+      html: `Welcome to our application. Please, verify your account by clicking on this <a href="http://localhost:${PORT}/auth/verify/${token}">link</>`,
+    };
+    await sgMail.send(msg);
   }
 
   async loginUser(req, res) {
@@ -189,6 +207,30 @@ class AuthController {
     }
 
     return res.status(204).send();
+  }
+
+  async verifyUser(req, res) {
+    try {
+      console.log(req.params);
+      const {
+        params: { verificationToken },
+      } = req;
+
+      const user = await User.findOne({
+        verificationToken,
+      });
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.verificationToken = undefined;
+      await user.save();
+
+      return res.status(200).json({ message: 'Success' });
+    } catch (err) {
+      return res.status(400).send(err.message);
+    }
   }
 }
 
